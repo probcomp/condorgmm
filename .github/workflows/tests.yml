@@ -1,0 +1,43 @@
+name: Run all tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  XLA_PYTHON_CLIENT_PREALLOCATE: "false"
+  XLA_PYTHON_CLIENT_ALLOCATOR: "platform"
+  PYTEST_ADDOPTS: "--color=yes"
+
+jobs:
+  test:
+    runs-on: [self-hosted, condorgmm]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install curl
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: curl
+          version: 1.0
+
+      - name: Run tests
+        run: |
+          # install pixi
+          curl -fsSL https://pixi.sh/install.sh | bash
+          source ~/.bashrc
+          export PATH=$HOME/.pixi/bin:$HOME/.local/bin:$PATH
+
+          # install gpu environment
+          pixi clean && pixi clean cache -y
+          pixi install --pypi-keyring-provider subprocess
+
+          # run tests
+          pixi run storage-symlinks
+          pixi run condorgmm-tests
+          pixi run script-tests

@@ -1,0 +1,16 @@
+{
+    "include": ["src/condorgmm/condor", "tests/condor"],
+    "exclude": ["**/node_modules", "**/__pycache__"],
+    "typeCheckingMode": "basic",
+    "useLibraryCodeForTypes": true,
+    "reportMissingImports": "error",
+    "reportMissingTypeStubs": false,
+    "pythonVersion": "3.12",
+    "strictListInference": true,
+    "strictDictionaryInference": true,
+    "strictSetInference": true,
+    "reportUnknownParameterType": "none",
+    "reportUnknownVariableType": "none",
+    "reportUnknownMemberType": "none",
+    "reportPrivateImportUsage": "none"
+}

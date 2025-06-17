@@ -1,0 +1,25 @@
+*.pyc
+*.egg-info
+*.pyc
+*.csv
+*.pkl
+*.png
+assets/*
+*.log
+*.r3d
+*.aux
+*.log
+*.out
+# pixi environments
+*.egg-info
+.pixi/envs/*
+.pixi/solve-group-envs/*
+out/
+results/*
+cache/
+*.gif
+
+# tensorboard
+tensorboard
+
+Video-Depth-Anything

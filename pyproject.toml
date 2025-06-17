@@ -1,0 +1,116 @@
+[project]
+authors = [{ name = "Nishad Gothoskar", email = "nishadg@mit.edu" }, { name = "George Matheos", email = "gmatheos@mit.edu" }]
+dependencies = [
+    "ipython", "genjax==0.10.0", "genstudio", "pyliblzfse>=0.4.1,<0.5", "ffmpeg>=1.4,<2", "imageio>=2.36.0,<3", "natsort>=8.4.0,<9", "tqdm>=4.67.1,<5", "pytest>=8.3.3,<9", "matplotlib>=3.9.2,<4", "scikit-image>=0.24.0,<0.25", "fire>=0.7.0,<0.8", "pre-commit>=4.0.1,<5", "trimesh>=4.5.2,<5", "scikit-learn>=1.5.2,<2", "pandas>=2.2.3,<3", "tabulate>=0.9.0,<0.10", "opencv-python>=4.10.0.84,<5", "warp-lang==1.6.0", "ray[data]>=2.39.0,<3", "carvekit>=4.1.2,<5", "flask>=3.1.0,<4", "jax[cuda12-local]==0.4.35", "optax>=0.2.4,<0.3", "jupyterlab-vim>=4.1.4,<5"]
+description = "Probabilistic inference on 3D vision."
+name = "condorgmm"
+requires-python = ">= 3.9"
+version = "0.1.0"
+
+[tool.pixi.system-requirements]
+cuda = "12.4"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+conda-pypi-map = { "conda-forge" = "parselmouth.json" }
+
+[tool.pixi.pypi-dependencies]
+condorgmm = { path = ".", editable = true }
+gsplat = "==1.4.0"
+torch = "<=2.5.0"
+torchvision = ">=0.16.0"
+
+[tool.pixi.pypi-options]
+index-url = "https://pypi.org/simple"
+
+
+[tool.pixi.tasks]
+download-bucket = { cmd = "python scripts/bucket_utils/pull.py -ow" }
+download-ycbv-test = { cmd = "./scripts/download_ycbv.sh" }
+download-ycbv-train = { cmd = "./scripts/download_ycbv_train.sh" }
+download-all = { depends-on = [
+    "download-bucket",
+    "download-ycbv-test",
+    "download-ycbv-train",
+] }
+condorgmm-tests = { cmd = "pytest tests" }
+script-tests = { cmd = "./tests/scripts/runner.sh" }
+storage-mount = { cmd = "./scripts/storage.sh --mount" }
+storage-symlinks = { cmd = "./scripts/storage.sh --symbolic-links" }
+eval = { cmd = "./scripts/eval.sh" }
+compare = { cmd = "./scripts/compare.sh" }
+tb-trace = { cmd = "./scripts/tensorboard.sh --trace" }
+tb-clean = { cmd = "./scripts/tensorboard.sh --clean" }
+ncu-ui = { cmd = "ncu-ui --no-splash" }
+nsys-ui = { cmd = "nsys-ui" }
+
+[tool.pixi.activation.env]
+XLA_PYTHON_CLIENT_PREALLOCATE = "false"
+XLA_PYTHON_CLIENT_ALLOCATOR = "platform"
+
+[tool.pixi.dependencies]
+rerun-sdk = "==0.20"
+numpy = "<2.0.0"
+ffmpeg = ">=7.1.0,<8"
+ipykernel = ">=6.29.5,<7"
+xcb-util-cursor = ">=0.1.5,<0.2"
+xcb-util = ">=0.4.1,<0.5"
+libopengl = ">=1.7.0,<2"
+python = ">=3.12.7,<3.13"
+pillow = "==10.4.0"
+pyright = ">=1.1.396,<2"
+jupyter = ">=1.1.1,<2"
+
+[tool.pixi.feature.sensreader.dependencies]
+python = "2.7.*"
+numpy = "*"
+zlib = "*"
+imageio = "*"
+opencv = "*"
+libpng = "*"
+pypng = "*"
+
+[tool.pixi.feature.vda]
+system-requirements = { cuda = "12.4" }
+
+[tool.pixi.feature.vda.dependencies]
+numpy = "*"
+matplotlib = "*"
+pillow = "*"
+imageio = "*"
+imageio-ffmpeg = "*"
+xformers = "*"
+einops = "*"
+easydict = "*"
+tqdm = "*"
+OpenEXR = "*"
+torchvision = "==0.16.1"
+pytorch-gpu = "*"
+
+[tool.pixi.feature.vda.pypi-dependencies]
+decord = "*"
+opencv-python = "*"
+torch = "==2.1.2"
+
+[tool.pixi.feature.vda.tasks.setup]
+cmd = "mkdir -p deps && cd deps && gh repo clone DepthAnything/Video-Depth-Anything && cd Video-Depth-Anything && bash get_weights.sh"
+
+[tool.pixi.feature.vda.tasks.run]
+args = ["input_video", "output_dir", "encoder"]
+cwd = "deps/Video-Depth-Anything"
+cmd  = "python run.py --input_video {{input_video}} --output_dir {{output_dir}} --encoder {{encoder}} --save_npz"
+
+[tool.pixi.environments]
+sensor = { features = ["sensreader"], no-default-feature = true }
+vda = { features = ["vda"], no-default-feature = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
