@@ -4,12 +4,38 @@ import condorgmm
 from .state import State
 
 
-snippet = adj_snippet = @wp.func_native(snippet, adj_snippet)
+snippet = """
+    // Logaddexp operation
+    int assumed, current_float_viewed_as_int, logaddexp_result_view_as_int;
+    float current_float, logaddexp_result_float;
+
+    while(true){
+        current_float = log_score_image[unraveled_index];
+
+        logaddexp_result_float = fmaxf(current_float, log_value_to_add_in) + log1pf(expf(-fabsf(current_float - log_value_to_add_in)));
+
+        logaddexp_result_view_as_int = __float_as_int(logaddexp_result_float);
+        current_float_viewed_as_int = __float_as_int(current_float);
+
+        assumed = atomicCAS(reinterpret_cast<int*>(&log_score_image[unraveled_index]), current_float_viewed_as_int, logaddexp_result_view_as_int);
+        if (assumed == current_float_viewed_as_int) break;
+    }
+"""
+
+adj_snippet = """
+float total_log_score_for_pixel = log_score_image[unraveled_index];
+float ratio = expf(log_value_to_add_in - total_log_score_for_pixel);
+adj_log_value_to_add_in += -1.0 * ratio * adj_log_score_image[unraveled_index];
+"""
+
+
+@wp.func_native(snippet, adj_snippet)
 def warp_gmm_native_log_add_exp(
     log_value_to_add_in: float,
     unraveled_index: int,
     log_score_image: wp.array(dtype=wp.float32, ndim=2),
 ): ...
+
 
 
 @wp.kernel
